@@ -3,7 +3,7 @@
 Simple Chinese word segmentation library for emacs based on cjieba
 (<https://github.com/yanyiwu/cjieba/>).
 
-This library uses cjieba with simple modification.
+This library uses cjieba (commit 91c233d) with simple modification.
 
 ## Compile the C program
 
