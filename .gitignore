@@ -1,0 +1,4 @@
+*.o
+chinese-word-segmentation
+*.a
+*.swp

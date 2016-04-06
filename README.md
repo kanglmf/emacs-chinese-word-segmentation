@@ -1,0 +1,33 @@
+# emacs-chinese-word-segmentation
+
+Simple Chinese word segmentation library for emacs based on cjieba
+(<https://github.com/yanyiwu/cjieba/>).
+
+This library uses cjieba with simple modification.
+
+## Compile the C program
+
+To compile the Chinese word segmentation program, do:
+
+```
+cd /path/to/this-library
+make
+```
+
+This will generate the chinese-word-segmentation executable.
+
+## Usage example
+
+```
+(add-to-list 'load-path "/path/to/this-library")
+(setq cns-prog "/path/to/this-library/chinese-word-segmentation")
+(setq cns-dict-directory "/path/to/this-library/dict")
+(setq cns-recent-segmentation-limit 20) ; default is 10
+(setq cns-debug nil) ; disable debug output, default is t
+(require 'cns nil t)
+```
+
+To turn on this minor mode, type: M-x cns-mode RET.  You can also turn
+on global-cns-mode if you like.
+
+Please see the comments in cns.el for more detail.
