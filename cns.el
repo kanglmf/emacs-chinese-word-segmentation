@@ -412,7 +412,6 @@ Ensure that `cns-dict-directory' is set properly."
            (dict-user (concat (file-name-as-directory dir) "user.dict.utf8"))
            (cmd (format "%s -j %s -h %s -u %s"
                         cns-prog dict-jieba dict-hmm dict-user)))
-      (message "%s" cmd)
       (setq cns-process (start-process-shell-command cns-process-name
                                                      cns-process-buffer
                                                      cmd))))
