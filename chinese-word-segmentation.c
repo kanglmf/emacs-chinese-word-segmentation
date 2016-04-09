@@ -83,5 +83,9 @@ int main (int argc, char** argv) {
   }
 
   cut_input (DICT_PATH, HMM_PATH, USER_DICT);
+  free (DICT_PATH);
+  free (HMM_PATH);
+  free (USER_DICT);
+
   return EXIT_SUCCESS;
 }
