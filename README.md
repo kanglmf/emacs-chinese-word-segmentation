@@ -1,9 +1,12 @@
+
 # emacs-chinese-word-segmentation
 
-Simple Chinese word segmentation library for emacs based on cjieba
-(<https://github.com/yanyiwu/cjieba/>).
+Emacs 中的基于 cjieba (<https://github.com/yanyiwu/cjieba/>) 的中文分
+词工具。
 
-This library uses cjieba (commit 91c233d) with simple modification.
+Simple Chinese word segmentation library for emacs based on cjieba
+(<https://github.com/yanyiwu/cjieba/>).  This library uses cjieba
+(commit 91c233d) with simple modification.
 
 ## Compile the C program
 
