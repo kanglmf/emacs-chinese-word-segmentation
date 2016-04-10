@@ -32,4 +32,21 @@ This will generate the chinese-word-segmentation executable.
 To turn on this minor mode, type: M-x cns-mode RET.  You can also turn
 on global-cns-mode if you like.
 
+## Key bindings
+
+This minor mode changes the following key bindings:
+
+```
++---------------+----------------------+--------------------------+
+| key binding   | default command      | cns-mode command         |
++---------------+----------------------+--------------------------+
+| M-b           | (backward-word)      | (cns-backward-word)      |
+| M-f           | (forward-word)       | (cns-forward-word)       |
+| C-<backspace> | (backward-kill-word) | (cns-backward-kill-word) |
+| M-DEL         | (backward-kill-word) | (cns-backward-kill-word) |
+| C-<delete>    | (kill-word)          | (cns-kill-word)          |
+| M-d           | (kill-word)          | (cns-kill-word)          |
++---------------+----------------------+--------------------------+
+```
+
 Please see the comments in cns.el for more detail.
