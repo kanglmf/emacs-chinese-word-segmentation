@@ -3,42 +3,44 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <wchar.h>
+#include <locale.h>
 
 #include "lib/jieba.h"
 
 char* getstr () {
-  /* https://segmentfault.com/a/1190000000360944 */
-  char* str;
-  char* _str;
-  int i = 1;
-  str = (char*) malloc (sizeof (char) * (i + 1));
-  while ('\n' != (str[i - 1] = getchar ())) {
+  wchar_t *str;
+  char *ret;
+  wint_t i = 1;
+  size_t j;
+  /* assuming a sentence contains at most 200 wide characters */
+  size_t WCHAR_MAX_SIZE = sizeof (wchar_t) * 200;
+
+  str = (wchar_t *) malloc (WCHAR_MAX_SIZE);
+  while ('\n' != (str[i - 1] = getwchar ())) {
+    if (str[i - 1] == WEOF) break;
     i ++;
-    _str = (char*) malloc (strlen (str) + 1);
-    str[i - 1] = '\0';
-    strcpy (_str,  str);
-    free (str);
-    str = (char*) malloc (sizeof (char) * (i + 1));
-    if (NULL == str) {
-      free (_str);
-      printf ("No enough memory!");
-      return NULL;
-    }
-    strcpy (str,  _str);
-    free (_str);
   }
-  str[i - 1] = '\0';
-  return str;
+  str[i - 1] = L'\0';
+  j = sizeof (wchar_t) * (wcslen (str) + 1);
+  ret = (char *) malloc (j);
+  wcstombs (ret, str, j);
+  ret[j - 1] = '\0';
+  free (str);
+  return ret;
 }
 
 void cut_input (char *DICT_PATH, char *HMM_PATH, char *USER_DICT) {
   char *s;
+  size_t wchar_width = sizeof (wchar_t) - 1;
 
   Jieba handle = NewJieba (DICT_PATH, HMM_PATH, USER_DICT);
+  setlocale (LC_ALL, "");
   printf ("Chinese word segmentation\n=========================\n\n");
 
   while (s = getstr ()) {
     if (strcmp (s, "EOF") == 0) {
+      free (s);
       printf ("bye\n");
       break;
     } else {
@@ -47,9 +49,10 @@ void cut_input (char *DICT_PATH, char *HMM_PATH, char *USER_DICT) {
       CJiebaWord* x;
       for (x = words; x && x->word; x++) {
         /* printf ("%*.*s/", x->len, x->len, x->word); */
-        printf ("%d ", x->len / 3);
+        printf ("%d ", x->len / wchar_width);
       }
       printf ("\n");
+      free (s);
       FreeWords (words);
     }
   }
