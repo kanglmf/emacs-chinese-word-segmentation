@@ -474,5 +474,10 @@ all buffers, use `global-cns-mode'.
 (define-globalized-minor-mode global-cns-mode cns-mode
   (lambda nil (cns-mode 1)))
 
+(defun cns-auto-enable nil
+  "Enable `cns-mode' if current buffer contaions HànZì."
+  (if (string-match "\\cC" (buffer-string))
+      (cns-mode 1)))
+
 (provide 'cns)
 ;;; cns.el ends here
