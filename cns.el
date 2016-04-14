@@ -388,16 +388,6 @@ combination of Chinese characters and non-Chinese characters."
   (interactive "p")
   (kill-region (point) (progn (cns-forward-word arg) (point))))
 
-(defvar cns-mode-map
-  (let ((m (make-sparse-keymap)))
-    (define-key m (kbd "M-b") 'cns-backward-word)
-    (define-key m (kbd "M-f") 'cns-forward-word)
-    (define-key m (kbd "C-<backspace>") 'cns-backward-kill-word)
-    (define-key m (kbd "M-DEL") 'cns-backward-kill-word)
-    (define-key m (kbd "C-<delete>") 'cns-kill-word)
-    (define-key m (kbd "M-d") 'cns-kill-word)
-    m))
-
 (defun cns-start-process nil
   "Start the word segmentation process.
 Ensure that `cns-dict-directory' is set properly."
@@ -449,6 +439,16 @@ stop the word segmentation process `cns-process'."
   (cns-handle-buffer-list 'disable)
   (if (and (process-live-p cns-process) (= 0 (length cns-buffer-list)))
       (cns-stop-process)))
+
+(defvar cns-mode-map
+  (let ((m (make-sparse-keymap)))
+    (define-key m (kbd "M-b") 'cns-backward-word)
+    (define-key m (kbd "M-f") 'cns-forward-word)
+    (define-key m (kbd "C-<backspace>") 'cns-backward-kill-word)
+    (define-key m (kbd "M-DEL") 'cns-backward-kill-word)
+    (define-key m (kbd "C-<delete>") 'cns-kill-word)
+    (define-key m (kbd "M-d") 'cns-kill-word)
+    m))
 
 ;;;###autoload
 (define-minor-mode cns-mode
