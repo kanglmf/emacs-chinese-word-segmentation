@@ -27,6 +27,8 @@ This will generate the chinese-word-segmentation executable.
 (setq cns-recent-segmentation-limit 20) ; default is 10
 (setq cns-debug nil) ; disable debug output, default is t
 (require 'cns nil t)
+(when (featurep 'cns)
+  (add-hook 'find-file-hook 'cns-auto-enable))
 ```
 
 To turn on this minor mode, type: M-x cns-mode RET.  You can also turn
@@ -46,6 +48,7 @@ This minor mode changes the following key bindings:
 | M-DEL         | (backward-kill-word) | (cns-backward-kill-word) |
 | C-<delete>    | (kill-word)          | (cns-kill-word)          |
 | M-d           | (kill-word)          | (cns-kill-word)          |
+| M-t           | (transpose-words)    | (cns-transpose-words)    |
 +---------------+----------------------+--------------------------+
 ```
 
