@@ -60,6 +60,13 @@ void cut_input (char *DICT_PATH, char *HMM_PATH, char *USER_DICT) {
 }
 
 int main (int argc, char** argv) {
+  if (argc != 7) {
+    fprintf (stderr, "\
+Usage:\n\
+%s -j dict_jieba -h dict_hmm -u dict_user\n\
+", argv[0]);
+    return 1;
+  }
   char *DICT_PATH;
   char *HMM_PATH;
   char *USER_DICT;
