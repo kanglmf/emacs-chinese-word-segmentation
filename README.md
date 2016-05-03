@@ -20,7 +20,7 @@ This will generate the chinese-word-segmentation executable.
 
 ## Usage example
 
-```
+```elisp
 (add-to-list 'load-path "/path/to/this-library")
 (setq cns-prog "/path/to/this-library/chinese-word-segmentation")
 (setq cns-dict-directory "/path/to/this-library/dict")
