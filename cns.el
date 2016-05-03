@@ -38,6 +38,8 @@
 ;; (setq cns-recent-segmentation-limit 20) ; default is 10
 ;; (setq cns-debug nil) ; disable debug output, default is t
 ;; (require 'cns nil t)
+;; (when (featurep 'cns)
+;;   (add-hook 'find-file-hook 'cns-auto-enable))
 ;;
 ;; To turn on this minor mode, type: M-x cns-mode RET.  You can also
 ;; turn on global-cns-mode if you like.
@@ -45,6 +47,7 @@
 ;; NOTE:
 ;;
 ;; The `cns-mode', if enabled, changes the following key bindings:
+;;
 ;; +---------------+----------------------+--------------------------+
 ;; | key binding   | default command      | cns-mode command         |
 ;; +---------------+----------------------+--------------------------+
@@ -54,9 +57,10 @@
 ;; | M-DEL         | (backward-kill-word) | (cns-backward-kill-word) |
 ;; | C-<delete>    | (kill-word)          | (cns-kill-word)          |
 ;; | M-d           | (kill-word)          | (cns-kill-word)          |
+;; | M-t           | (transpose-words)    | (cns-transpose-words)    |
 ;; +---------------+----------------------+--------------------------+
 ;;
-;; Similar to `backward-word' and `forward-word', prefix argument for
+;; Similar to `backward-word' or `forward-word', prefix argument for
 ;; all cns-mode commands listed above is also supported.
 ;;
 ;; Keep in mind that, Chinese characters include HànZì (汉字) and
@@ -207,15 +211,23 @@ is the word to be processed.  If WORD is omitted, use
             (match-string-no-properties 2 word)))
      (t nil))))
 
-(defun cns-within-chinese-p nil
-  "Return t if current position is surrounded by HànZì or nil otherwise."
+(defun cns-within-thing-p (regex)
+  "Return t if current position is surrounded by REGEX or nil otherwise."
   (cond
    ((= (point) (point-min)) nil)
    ((= (point) (point-max)) nil)
-   ((and (string-match "^\\cC$" (char-to-string (char-before)))
-         (string-match "^\\cC$" (char-to-string (char-after))))
+   ((and (string-match (format "^%s$" regex) (char-to-string (char-before)))
+         (string-match (format "^%s$" regex) (char-to-string (char-after))))
     t)
    (t nil)))
+
+(defun cns-within-chinese-p nil
+  "Return t if current position is surrounded by HànZì or nil otherwise."
+  (cns-within-thing-p "\\cC"))
+
+(defun cns-within-non-word-p nil
+  "Return t if current position is surrounded by non-word or nil otherwise."
+  (cns-within-thing-p "\\Sw"))
 
 (defun cns-get-chinese-sentence (&optional with-position)
   "Return the whole sentence of chinese text around cursor.
@@ -350,14 +362,48 @@ enable `cns-mode' first"))
       (backward-word)
     (cns-move 'backward)))
 
+(defun cns-forward-word-1 nil
+  "Move forward a word just once."
+  (if (not (string-match "\\cC" (cns-get-word 'forward)))
+      (forward-word)
+    (cns-move 'forward)))
+
 (defun cns-backward-word (&optional arg)
-  "Move backward a word ARG times."
+  "Move backward until encountering the beginning of a word.
+Each \"word\" can be a normal word or a Chinese word.
+With argument ARG, do this that many times.
+If ARG is omitted or nil, move point backward one word."
   (interactive "p")
   (let ((arg (or arg 1))
         (i 0))
-    (while (< i arg)
-      (cns-backward-word-1)
-      (setq i (1+ i)))))
+    (cond
+     ((> arg 0)
+      (while (< i arg)
+        (cns-backward-word-1)
+        (setq i (1+ i))))
+     ((< arg 0)
+      (while (< i (- arg))
+        (cns-forward-word-1)
+        (setq i (1+ i))))
+     (t t))))
+
+(defun cns-forward-word (&optional arg)
+  "Move point forward ARG words (backward if ARG is negative).
+Each \"word\" can be a normal word or a Chinese word.
+If ARG is omitted or nil, move point forward one word."
+  (interactive "p")
+  (let ((arg (or arg 1))
+        (i 0))
+    (cond
+     ((> arg 0)
+      (while (< i arg)
+        (cns-forward-word-1)
+        (setq i (1+ i))))
+     ((< arg 0)
+      (while (< i (- arg))
+        (cns-backward-word-1)
+        (setq i (1+ i))))
+     (t t))))
 
 (defun cns-backward-kill-word (&optional arg)
   "Kill characters backward until encountering the beginning of a word.
@@ -366,27 +412,94 @@ combination of Chinese characters and non-Chinese characters."
   (interactive "p")
   (kill-region (point) (progn (cns-backward-word arg) (point))))
 
-(defun cns-forward-word-1 nil
-  "Move forward a word just once."
-  (if (not (string-match "\\cC" (cns-get-word 'forward)))
-      (forward-word)
-    (cns-move 'forward)))
-
-(defun cns-forward-word (&optional arg)
-  "Move forward a word ARG times."
-  (interactive "p")
-  (let ((arg (or arg 1))
-        (i 0))
-    (while (< i arg)
-      (cns-forward-word-1)
-      (setq i (1+ i)))))
-
 (defun cns-kill-word (&optional arg)
   "Kill characters forward until encountering the end of a word.
 With argument ARG, do this that many times.  Word may be any
 combination of Chinese characters and non-Chinese characters."
   (interactive "p")
   (kill-region (point) (progn (cns-forward-word arg) (point))))
+
+(defun cns-transpose-words (arg)
+  "Interchange words around point, leaving point at end of them.
+Each \"word\" can be a normal word or a Chinese word.
+With prefix arg ARG, effect is to take word before or around point
+and drag it forward past ARG other words (backward if ARG negative).
+If ARG is zero, do nothing."
+  (interactive "*p")
+  (let ((arg (or arg 1))
+        (pos (point))
+        (pos-bf (save-excursion
+                  (cns-backward-word-1)
+                  (cns-forward-word-1)
+                  (point)))
+        (pos-fb (save-excursion
+                  (cns-forward-word-1)
+                  (cns-backward-word-1)
+                  (point)))
+        word1 word2 non-word pos1 pos2 pos3 pos4)
+    (cond
+     ((= arg 0) nil)
+     ((or (= pos (point-min)) (= pos (point-max)))
+      (error "Don't have two things to transpose"))
+     (t
+      (cond
+       ((and (= pos pos-bf) (= pos pos-fb))
+        ;; at Chinese word boundary and surrounded by Chinese words
+        ;; (e.g. "中文I分词")
+        (if (> arg 0)
+            (setq pos1 (save-excursion (cns-backward-word-1) (point))
+                  pos2 pos
+                  pos3 pos
+                  pos4 (save-excursion (cns-forward-word arg) (point)))
+          (setq pos1 (save-excursion (cns-backward-word (1+ (- arg))) (point))
+                pos2 (save-excursion (cns-backward-word 2) (cns-forward-word-1)
+                                     (point))
+                pos3 (save-excursion (cns-backward-word-1) (point))
+                pos4 pos)))
+       ((or (= pos pos-bf) (= pos pos-fb))
+        ;; between Chinese word and punctuation characters (including newline)
+        ;; (e.g. "中文,.I分词", "中文I,.分词", "中文\nI分词", "中文I\n分词")
+        (if (> arg 0)
+            (setq pos1 (save-excursion (cns-backward-word-1) (point))
+                  pos2 (save-excursion (cns-backward-word-1)
+                                       (cns-forward-word-1)
+                                       (point))
+                  pos3 (save-excursion (cns-forward-word-1)
+                                       (cns-backward-word-1)
+                                       (point))
+                  pos4 (save-excursion (cns-forward-word arg) (point)))
+          (setq pos1 (save-excursion (cns-backward-word (1+ (- arg))) (point))
+                pos2 (save-excursion (cns-backward-word 2) (cns-forward-word-1)
+                                     (point))
+                pos3 (save-excursion (cns-backward-word-1) (point))
+                pos4 (save-excursion (cns-backward-word-1) (cns-forward-word-1)
+                                     (point)))))
+       (t
+        ;; within a Chinese word, or within punctuation characters
+        ;; (e.g. "中I文分词", "中文分I词", "中文,.I,.分词")
+        (if (> arg 0)
+            (setq pos1 (save-excursion (cns-backward-word-1) (point))
+                  pos2 (save-excursion (cns-backward-word-1)
+                                       (cns-forward-word-1) (point))
+                  pos3 (save-excursion
+                         (cns-forward-word (if (cns-within-non-word-p) 1 2))
+                         (cns-backward-word-1) (point))
+                  pos4 (save-excursion
+                         (cns-forward-word
+                          (if (cns-within-non-word-p) arg (1+ arg)))
+                         (point)))
+          (setq pos1 (save-excursion (cns-backward-word (1+ (- arg))) (point))
+                pos2 (save-excursion (cns-backward-word 2) (cns-forward-word-1)
+                                     (point))
+                pos3 (save-excursion (cns-backward-word-1) (point))
+                pos4 (save-excursion (cns-backward-word-1) (cns-forward-word-1)
+                                     (point))))))
+      (setq word1 (buffer-substring-no-properties pos1 pos2)
+            non-word (buffer-substring-no-properties pos2 pos3)
+            word2 (buffer-substring-no-properties pos3 pos4))
+      (goto-char pos1)
+      (delete-region pos1 pos4)
+      (insert word2 non-word word1)))))
 
 (defun cns-start-process nil
   "Start the word segmentation process.
@@ -448,6 +561,7 @@ stop the word segmentation process `cns-process'."
     (define-key m (kbd "M-DEL") 'cns-backward-kill-word)
     (define-key m (kbd "C-<delete>") 'cns-kill-word)
     (define-key m (kbd "M-d") 'cns-kill-word)
+    (define-key m (kbd "M-t") 'cns-transpose-words)
     m))
 
 ;;;###autoload
