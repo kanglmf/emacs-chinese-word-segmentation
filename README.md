@@ -1,8 +1,7 @@
 
 # emacs-chinese-word-segmentation
 
-Emacs 中的基于 [cjieba](https://github.com/yanyiwu/cjieba) 的中文分词
-工具。
+Emacs 中的基于 [cjieba](https://github.com/yanyiwu/cjieba) 的中文分词工具。实现了以中文词语为单位的移动和编辑。
 
 Simple Chinese word segmentation library for Emacs based on
 [cjieba](https://github.com/yanyiwu/cjieba).  This library uses cjieba
