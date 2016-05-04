@@ -522,11 +522,11 @@ Ensure `cns-dict-directory' is set properly." path)))
                          cns-prog dict-jieba dict-hmm dict-user)))
         (setq cns-process (start-process-shell-command cns-process-name
                                                        cns-process-buffer
-                                                       cmd)))))
-  ;; wait until cns-process has been initialized
-  (accept-process-output cns-process)
-  ;; do not query on exit
-  (set-process-query-on-exit-flag cns-process nil))
+                                                       cmd)))
+      ;; wait until cns-process has been initialized
+      (accept-process-output cns-process)
+      ;; do not query on exit
+      (set-process-query-on-exit-flag cns-process nil))))
 
 (defun cns-stop-process nil
   "Stop the word segmentation process."
