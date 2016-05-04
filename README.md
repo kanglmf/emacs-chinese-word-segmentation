@@ -53,4 +53,4 @@ This minor mode changes the following key bindings:
 +---------------+----------------------+--------------------------+
 ```
 
-Please see the comments in `cns.el` for more detail.
+Please see the comments in `cns.el` for more information.
