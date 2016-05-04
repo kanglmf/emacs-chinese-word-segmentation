@@ -503,21 +503,26 @@ If ARG is zero, do nothing."
 
 (defun cns-start-process nil
   "Start the word segmentation process.
-Ensure that `cns-dict-directory' is set properly."
+Ensure that `cns-prog' and `cns-dict-directory' is set properly."
+  (if (not (file-executable-p cns-prog))
+      (error "'%s' is not a executable. \
+Ensure `cns-prog' is set properly." cns-prog))
   (if (not cns-dict-directory)
       (error "`cns-dict-directory' is not set"))
-  (if (not (file-exists-p cns-dict-directory))
-      (error "`cns-dict-directory' is not a valid path"))
   (unless (process-live-p cns-process)
-    (let* ((dir cns-dict-directory)
-           (dict-jieba (concat (file-name-as-directory dir) "jieba.dict.utf8"))
-           (dict-hmm (concat (file-name-as-directory dir) "hmm_model.utf8"))
-           (dict-user (concat (file-name-as-directory dir) "user.dict.utf8"))
-           (cmd (format "%s -j %s -h %s -u %s"
-                        cns-prog dict-jieba dict-hmm dict-user)))
-      (setq cns-process (start-process-shell-command cns-process-name
-                                                     cns-process-buffer
-                                                     cmd))))
+    (let* ((dir (file-name-as-directory (expand-file-name cns-dict-directory)))
+           (dict-jieba (concat dir "jieba.dict.utf8"))
+           (dict-hmm (concat dir "hmm_model.utf8"))
+           (dict-user (concat dir "user.dict.utf8")))
+      (dolist (path (list dir dict-jieba dict-hmm dict-user))
+        (if (not (file-exists-p path))
+            (error "'%s' is not a valid path. \
+Ensure `cns-dict-directory' is set properly." path)))
+      (let ((cmd (format "%s -j %s -h %s -u %s"
+                         cns-prog dict-jieba dict-hmm dict-user)))
+        (setq cns-process (start-process-shell-command cns-process-name
+                                                       cns-process-buffer
+                                                       cmd)))))
   ;; wait until cns-process has been initialized
   (accept-process-output cns-process)
   ;; do not query on exit
