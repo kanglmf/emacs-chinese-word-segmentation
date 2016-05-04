@@ -16,7 +16,7 @@ cd /path/to/this-library
 make
 ```
 
-This will generate the chinese-word-segmentation executable.
+This will generate the `chinese-word-segmentation` executable.
 
 ## Usage example
 
@@ -31,8 +31,8 @@ This will generate the chinese-word-segmentation executable.
   (add-hook 'find-file-hook 'cns-auto-enable))
 ```
 
-To turn on this minor mode, type: M-x cns-mode RET.  You can also turn
-on global-cns-mode if you like.
+To turn on this minor mode, type: <kbd>M-x</kbd> `cns-mode`
+<kbd>RET</kbd>.  You can also turn on `global-cns-mode` if you like.
 
 ## Key bindings
 
@@ -52,4 +52,4 @@ This minor mode changes the following key bindings:
 +---------------+----------------------+--------------------------+
 ```
 
-Please see the comments in cns.el for more detail.
+Please see the comments in `cns.el` for more detail.
