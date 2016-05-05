@@ -136,10 +136,12 @@ data.  See `cns-segmentation' for more information.")
   :group 'emacs
   :prefix "cns-")
 
-(defcustom cns-prog "chinese-word-segmentation"
-  "Path of the chinese word segmentation program.
+(defcustom cns-prog (executable-find "chinese-word-segmentation")
+  "Path of the Chinese word segmentation program.
+For example, \"/path/to/this-library/chinese-word-segmentation\".
+
 It may be the full path of the executable or just the executable
-filename, if it can be found it via `process-environment'."
+filename, if it can be found via `process-environment'."
   :type 'string
   :group 'cns)
 
@@ -503,12 +505,11 @@ If ARG is zero, do nothing."
 
 (defun cns-start-process nil
   "Start the word segmentation process.
-Ensure that `cns-prog' and `cns-dict-directory' is set properly."
-  (if (not (file-executable-p cns-prog))
-      (error "'%s' is not a executable. \
-Ensure `cns-prog' is set properly." cns-prog))
+Ensure that `cns-prog' and `cns-dict-directory' are set properly."
+  (if (or (not cns-prog) (not (executable-find cns-prog)))
+      (user-error "`cns-prog' is not set properly"))
   (if (not cns-dict-directory)
-      (error "`cns-dict-directory' is not set"))
+      (user-error "`cns-dict-directory' is not set properly"))
   (unless (process-live-p cns-process)
     (let* ((dir (file-name-as-directory (expand-file-name cns-dict-directory)))
            (dict-jieba (concat dir "jieba.dict.utf8"))
@@ -516,8 +517,8 @@ Ensure `cns-prog' is set properly." cns-prog))
            (dict-user (concat dir "user.dict.utf8")))
       (dolist (path (list dir dict-jieba dict-hmm dict-user))
         (if (not (file-exists-p path))
-            (error "'%s' is not a valid path. \
-Ensure `cns-dict-directory' is set properly." path)))
+            (user-error "'%s' is not a valid path, \
+ensure `cns-dict-directory' is set properly" path)))
       (let ((cmd (format "%s -j %s -h %s -u %s"
                          cns-prog dict-jieba dict-hmm dict-user)))
         (setq cns-process (start-process-shell-command cns-process-name
