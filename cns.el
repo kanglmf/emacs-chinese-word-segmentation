@@ -139,7 +139,7 @@ data.  See `cns-segmentation' for more information.")
 (defcustom cns-prog "chinese-word-segmentation"
   "Path of the chinese word segmentation program.
 It may be the full path of the executable or just the executable
-filename, if Emacs can find it in `process-environment'."
+filename, if it can be found it via `process-environment'."
   :type 'string
   :group 'cns)
 
