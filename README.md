@@ -54,3 +54,8 @@ This minor mode changes the following key bindings:
 ```
 
 Please see the comments in `cns.el` for more information.
+
+## Platform support
+
+This library is tested to work on [Debian](https://www.debian.org/)
+Jessie and [Cygwin](https://www.cygwin.com/).
