@@ -8,6 +8,8 @@
 
 #include "lib/jieba.h"
 
+#define CJIEBA_WCHAR_SIZE 3
+
 char* getstr () {
   wchar_t *str;
   char *ret;
@@ -22,7 +24,7 @@ char* getstr () {
     i ++;
   }
   str[i - 1] = L'\0';
-  j = sizeof (wchar_t) * (wcslen (str) + 1);
+  j = MB_CUR_MAX * (wcslen (str) + 1);
   ret = (char *) malloc (j);
   wcstombs (ret, str, j);
   ret[j - 1] = '\0';
@@ -32,7 +34,6 @@ char* getstr () {
 
 void cut_input (char *DICT_PATH, char *HMM_PATH, char *USER_DICT) {
   char *s;
-  size_t wchar_width = sizeof (wchar_t) - 1;
 
   Jieba handle = NewJieba (DICT_PATH, HMM_PATH, USER_DICT);
   setlocale (LC_ALL, "");
@@ -49,7 +50,7 @@ void cut_input (char *DICT_PATH, char *HMM_PATH, char *USER_DICT) {
       CJiebaWord* x;
       for (x = words; x && x->word; x++) {
         /* printf ("%*.*s/", x->len, x->len, x->word); */
-        printf ("%d ", x->len / wchar_width);
+        printf ("%d ", x->len / CJIEBA_WCHAR_SIZE);
       }
       printf ("\n");
       free (s);
