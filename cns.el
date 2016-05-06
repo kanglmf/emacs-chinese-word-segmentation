@@ -280,29 +280,30 @@ position of SEGMENTATION, respectively.  DIRECTION may be
   "Store WORD and SEGMENTATION results up to `cns-recent-segmentation-limit'.
 WORD is the input string of word segmentation, and SEGMENTATION
 is the word segmentation result."
-  (let ((limit cns-recent-segmentation-limit))
+  (let* ((limit cns-recent-segmentation-limit)
+         (recent-seg cns-recent-segmentation)
+         (recent-seg-len (length recent-seg))
+         (word-not-assoc-p (not (assoc word recent-seg)))
+         (seg-data `((,word ,segmentation))))
     (cond
-     ((= 0 (length cns-recent-segmentation)) ; initialize
-      (setq cns-recent-segmentation (list `(,word ,segmentation))))
-     ((and (< (length cns-recent-segmentation) limit)
-           (not (assoc word cns-recent-segmentation)))
-      (setq cns-recent-segmentation (append cns-recent-segmentation
-                                            (list `(,word ,segmentation)))))
-     ((and (= (length cns-recent-segmentation) limit)
-           (not (assoc word cns-recent-segmentation)))
-      (setq cns-recent-segmentation (append (cdr cns-recent-segmentation)
-                                            (list `(,word ,segmentation))))))))
+     ((= 0 recent-seg-len) ; initialize
+      (setq cns-recent-segmentation seg-data))
+     ((and (< recent-seg-len limit) word-not-assoc-p)
+      (setq cns-recent-segmentation (append recent-seg seg-data)))
+     ((and (= recent-seg-len limit) word-not-assoc-p)
+      (setq cns-recent-segmentation (append (cdr recent-seg) seg-data))))))
 
 (defun cns-segmentation-handler (word)
   "Set recent word segmentation and return current word segmentation.
 WORD is the input string of word segmentation."
-  (let (seg)
-    (if (assoc word cns-recent-segmentation)
-        (setq seg (cadr (assoc word cns-recent-segmentation)))
+  (let ((recent-seg-this-word (assoc word cns-recent-segmentation))
+        seg)
+    (if recent-seg-this-word
+        (setq seg (cadr recent-seg-this-word))
       (cns-send-string word cns-process)
       (accept-process-output cns-process)
+      (cns-store-recent-segmentation word cns-segmentation)
       (setq seg cns-segmentation))
-    (cns-store-recent-segmentation word cns-segmentation)
     seg))
 
 (defun cns-move-distance
