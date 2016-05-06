@@ -536,29 +536,39 @@ ensure `cns-dict-directory' is set properly" path)))
 
 (defun cns-handle-buffer-list (operation)
   "Maintain a list of buffers where function `cns-mode' is enabled.
-If OPERATION is 'enable, put current buffer to the list
+If OPERATION is 'add, put current buffer to the list
 `cns-buffer-list'.  Otherwise, delete current buffer from the
 list.  When `cns-buffer-list' is nil, disabling function `cns-mode' will
 stop the word segmentation process `cns-process'."
   (let ((buffer (current-buffer)))
-    (if (eq operation 'enable)
+    (if (eq operation 'add)
         (if (not (member buffer cns-buffer-list))
             (setq cns-buffer-list `(,@cns-buffer-list ,buffer)))
       (when (member buffer cns-buffer-list)
         (setq cns-buffer-list (delete buffer cns-buffer-list))))))
+
+(defun cns-buffer-list-add-buffer nil
+  "Add `current-buffer' to `cns-buffer-list'."
+  (cns-handle-buffer-list 'add))
+
+(defun cns-buffer-list-delete-buffer nil
+  "Delete `current-buffer' from `cns-buffer-list'."
+  (cns-handle-buffer-list 'delete))
 
 (defun cns-mode-enable nil
   "Enable `cns-mode'."
   (unless (process-live-p cns-process)
     (cns-start-process)
     (set-process-filter cns-process 'cns-segmentation-filter))
-  (cns-handle-buffer-list 'enable))
+  (cns-buffer-list-add-buffer)
+  (add-hook 'kill-buffer-hook 'cns-mode-disable nil t))
 
 (defun cns-mode-disable nil
   "Disable `cns-mode'."
-  (cns-handle-buffer-list 'disable)
-  (if (and (process-live-p cns-process) (= 0 (length cns-buffer-list)))
-      (cns-stop-process)))
+  (cns-buffer-list-delete-buffer)
+  (when (and (process-live-p cns-process) (= 0 (length cns-buffer-list)))
+    (cns-stop-process))
+  (remove-hook 'kill-buffer-hook 'cns-mode-disable t))
 
 (defvar cns-mode-map
   (let ((m (make-sparse-keymap)))
