@@ -94,7 +94,7 @@
 ;; do normal word movement (i.e. `backward-word' or `forward-word'),
 ;; there is no HànZì in the region from current point to the point
 ;; after word movement.  Note that Chinese punctuation character is
-;; not HànZì.)
+;; not HànZì.
 ;;
 ;; +-----------+-------------+-------------------------+------------------+
 ;; | Situation | example     | next movement direction | desired movement |
