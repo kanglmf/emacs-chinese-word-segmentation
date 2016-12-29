@@ -94,7 +94,7 @@
 ;; do normal word movement (i.e. `backward-word' or `forward-word'),
 ;; there is no HànZì in the region from current point to the point
 ;; after word movement.  Note that Chinese punctuation character is
-;; not HànZì.
+;; not HànZì.)
 ;;
 ;; +-----------+-------------+-------------------------+------------------+
 ;; | Situation | example     | next movement direction | desired movement |
@@ -442,7 +442,8 @@ If ARG is zero, do nothing."
         word1 word2 non-word pos1 pos2 pos3 pos4)
     (cond
      ((= arg 0) nil)
-     ((or (= pos (point-min)) (= pos (point-max)))
+     ((or (= (point-min) (save-excursion (cns-backward-word-1) (point)))
+          (= (point-max) (save-excursion (cns-forward-word-1) (point))))
       (error "Don't have two things to transpose"))
      (t
       (cond
