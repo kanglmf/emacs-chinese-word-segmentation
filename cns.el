@@ -422,6 +422,59 @@ combination of Chinese characters and non-Chinese characters."
   (interactive "p")
   (kill-region (point) (progn (cns-forward-word arg) (point))))
 
+(defun cns-region-nonword-p (pos1 pos2)
+  "Return t if all characters within pos1 and pos2 are non-words
+or nil otherwise.  Argument POS1 and POS2 are the start and end
+positions, respectively."
+  (if (string-match "^\\Sw+$" (buffer-substring-no-properties pos1 pos2))
+      t
+    nil))
+
+(defun cns-near-buffer-boundary-p (direction &optional pos)
+  "Return t if there are only non-words within cursor and the
+point after one word movement toward DIRECTION.  Optional
+argument POS is the cursor position.  If POS is omitted, use
+current cursor position instead."
+  (let ((pos (or pos (point))))
+    (save-excursion
+      (goto-char pos)
+      (cond
+       ((eq direction 'backward)
+        (if (= (point-min) pos)
+            t
+          (if (and (= (point-min) (save-excursion (cns-backward-word-1)
+                                                  (point)))
+                   (cns-region-nonword-p (point-min) pos))
+              t
+            nil)))
+       ((eq direction 'forward)
+        (if (= (point-max) pos)
+            t
+          (if (and (= (point-max) (save-excursion (cns-forward-word-1) (point)))
+                   (cns-region-nonword-p pos (point-max)))
+              t
+            nil)))
+       (t (user-error
+           "Argument DIRECTION should be 'backward or 'forward."))))))
+
+(defun cns-movement-near-buffer-boundary-p (arg &optional pos)
+  "Return t if there are only non-words within the point after
+the last but one word movement and the point after the last word
+movement toward DIRECTION.  Optional argument POS is the cursor
+position.  If POS is omitted, use current cursor position instead."
+  (if (= arg 0) (error "Argument ARG should not be 0"))
+  (let ((pos (or pos (point)))
+        last-but-one)
+    (save-excursion
+      (goto-char pos)
+      (cond
+       ((< arg 0)
+        (setq last-but-one (save-excursion (cns-forward-word (1+ arg)) (point)))
+        (if (cns-near-buffer-boundary-p 'backward last-but-one) t nil))
+       ((> arg 0)
+        (setq last-but-one (save-excursion (cns-forward-word (1- arg)) (point)))
+        (if (cns-near-buffer-boundary-p 'forward last-but-one) t nil))))))
+
 (defun cns-transpose-words (arg)
   "Interchange words around point, leaving point at end of them.
 Each \"word\" can be a normal word or a Chinese word.
@@ -431,73 +484,60 @@ If ARG is zero, do nothing."
   (interactive "*p")
   (let ((arg (or arg 1))
         (pos (point))
-        (pos-bf (save-excursion
-                  (cns-backward-word-1)
-                  (cns-forward-word-1)
-                  (point)))
-        (pos-fb (save-excursion
-                  (cns-forward-word-1)
-                  (cns-backward-word-1)
-                  (point)))
+        (pos-bf (save-excursion (cns-backward-word-1) (cns-forward-word-1)
+                                (point)))
+        (pos-fb (save-excursion (cns-forward-word-1) (cns-backward-word-1)
+                                (point)))
         word1 word2 non-word pos1 pos2 pos3 pos4)
     (cond
      ((= arg 0) nil)
-     ((or (= (point-min) (save-excursion (cns-backward-word-1) (point)))
-          (= (point-max) (save-excursion (cns-forward-word-1) (point))))
+     ((cns-near-buffer-boundary-p 'backward pos)
+      ;; in this case there is no word at the left for word movement
       (error "Don't have two things to transpose"))
      (t
       (cond
-       ((and (= pos pos-bf) (= pos pos-fb))
-        ;; at Chinese word boundary and surrounded by Chinese words
-        ;; (e.g. "中文I分词")
+       ((or (= pos pos-bf) (= pos pos-fb) (cns-within-non-word-p))
+        ;; between Chinese word and punctuation characters (including newline),
+        ;; or within punctuation characters (e.g. "中文,.I分词", "中文I,.分词",
+        ;; "中文\nI分词", "中文I\n分词", "中文,.I,.分词")
         (if (> arg 0)
-            (setq pos1 (save-excursion (cns-backward-word-1) (point))
-                  pos2 pos
-                  pos3 pos
-                  pos4 (save-excursion (cns-forward-word arg) (point)))
-          (setq pos1 (save-excursion (cns-backward-word (1+ (- arg))) (point))
-                pos2 (save-excursion (cns-backward-word 2) (cns-forward-word-1)
-                                     (point))
-                pos3 (save-excursion (cns-backward-word-1) (point))
-                pos4 pos)))
-       ((or (= pos pos-bf) (= pos pos-fb))
-        ;; between Chinese word and punctuation characters (including newline)
-        ;; (e.g. "中文,.I分词", "中文I,.分词", "中文\nI分词", "中文I\n分词")
-        (if (> arg 0)
-            (setq pos1 (save-excursion (cns-backward-word-1) (point))
-                  pos2 (save-excursion (cns-backward-word-1)
-                                       (cns-forward-word-1)
+            (if (cns-movement-near-buffer-boundary-p arg pos)
+                (error "Don't have two things to transpose")
+              (setq pos1 (save-excursion (cns-backward-word-1) (point))
+                    pos2 (save-excursion (cns-backward-word-1)
+                                         (cns-forward-word-1)
+                                         (point))
+                    pos3 (save-excursion (cns-forward-word-1)
+                                         (cns-backward-word-1)
+                                         (point))
+                    pos4 (save-excursion (cns-forward-word arg) (point))))
+          (if (cns-movement-near-buffer-boundary-p (1- arg) pos)
+              (error "Don't have two things to transpose")
+            (setq pos1 (save-excursion (cns-backward-word (1+ (- arg))) (point))
+                  pos2 (save-excursion (cns-backward-word 2) (cns-forward-word-1)
                                        (point))
-                  pos3 (save-excursion (cns-forward-word-1)
-                                       (cns-backward-word-1)
-                                       (point))
-                  pos4 (save-excursion (cns-forward-word arg) (point)))
-          (setq pos1 (save-excursion (cns-backward-word (1+ (- arg))) (point))
-                pos2 (save-excursion (cns-backward-word 2) (cns-forward-word-1)
-                                     (point))
-                pos3 (save-excursion (cns-backward-word-1) (point))
-                pos4 (save-excursion (cns-backward-word-1) (cns-forward-word-1)
-                                     (point)))))
+                  pos3 (save-excursion (cns-backward-word-1) (point))
+                  pos4 (save-excursion (cns-backward-word-1) (cns-forward-word-1)
+                                       (point))))))
        (t
-        ;; within a Chinese word, or within punctuation characters
-        ;; (e.g. "中I文分词", "中文分I词", "中文,.I,.分词")
+        ;; within a Chinese word (e.g. "中I文分词", "中文分I词")
         (if (> arg 0)
-            (setq pos1 (save-excursion (cns-backward-word-1) (point))
-                  pos2 (save-excursion (cns-backward-word-1)
-                                       (cns-forward-word-1) (point))
-                  pos3 (save-excursion
-                         (cns-forward-word (if (cns-within-non-word-p) 1 2))
-                         (cns-backward-word-1) (point))
-                  pos4 (save-excursion
-                         (cns-forward-word
-                          (if (cns-within-non-word-p) arg (1+ arg)))
-                         (point)))
-          (setq pos1 (save-excursion (cns-backward-word (1+ (- arg))) (point))
-                pos2 (save-excursion (cns-backward-word 2) (cns-forward-word-1)
-                                     (point))
-                pos3 (save-excursion (cns-backward-word-1) (point))
-                pos4 (save-excursion (cns-backward-word-1) (cns-forward-word-1)
-                                     (point))))))
+            (if (cns-movement-near-buffer-boundary-p (1+ arg) pos)
+                (error "Don't have two things to transpose")
+              (setq pos1 (save-excursion (cns-backward-word-1) (point))
+                    pos2 (save-excursion (cns-backward-word-1)
+                                         (cns-forward-word-1) (point))
+                    pos3 (save-excursion (cns-forward-word 2)
+                                         (cns-backward-word-1) (point))
+                    pos4 (save-excursion (cns-forward-word (1+ arg)) (point))))
+          (if (cns-movement-near-buffer-boundary-p (1- arg) pos)
+              (error "Don't have two things to transpose")
+            (setq pos1 (save-excursion (cns-backward-word (1+ (- arg))) (point))
+                  pos2 (save-excursion (cns-backward-word 2) (cns-forward-word-1)
+                                       (point))
+                  pos3 (save-excursion (cns-backward-word-1) (point))
+                  pos4 (save-excursion (cns-backward-word-1) (cns-forward-word-1)
+                                       (point)))))))
       (setq word1 (buffer-substring-no-properties pos1 pos2)
             non-word (buffer-substring-no-properties pos2 pos3)
             word2 (buffer-substring-no-properties pos3 pos4))
