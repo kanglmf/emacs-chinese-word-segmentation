@@ -8,7 +8,11 @@
 
 // requires C++ 2017
 #include <filesystem>
+#ifdef __clang__
+namespace fs = std::__fs::filesystem;
+#else
 namespace fs = std::filesystem;
+#endif
 
 #include "cppjieba/DictTrie.hpp"
 #include "cppjieba/FullSegment.hpp"
