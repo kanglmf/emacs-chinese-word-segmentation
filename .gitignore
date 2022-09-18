@@ -1,5 +1,5 @@
+cnws
+cnws.exe
 *.o
-chinese-word-segmentation
-chinese-word-segmentation.exe
 *.a
 *.swp
