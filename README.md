@@ -1,30 +1,35 @@
 
 # emacs-chinese-word-segmentation
 
-Emacs 中的基于 [cjieba](https://github.com/yanyiwu/cjieba) 的中文分词工具。实现了以中文词语为单位的移动和编辑。
+基于 [结巴分词](https://github.com/yanyiwu/cppjieba) 的 Emacs 中文分词
+工具，实现了以中文词语为单位的移动和编辑。支持 Linux、Cygwin 和
+Windows 平台。目前 Windows 平台支持是通过调用 Cygwin 进程实现的。
 
-Simple Chinese word segmentation library for Emacs based on
-[cjieba](https://github.com/yanyiwu/cjieba).  This library uses cjieba
-([commit 91c233d](https://github.com/yanyiwu/cjieba/tree/91c233d932cd931f82b0ac7050801e7d4d5a3d19))
-with simple modification.
+## 原理
 
-## Compile the C program
+通过调用外部程序的 REPL 实时进行中文分词，分词结果返回给 Emacs，只保留
+分词后的每个词组的长度（如 `["中文", "分词"]: 2 2` 只保留 `2 2`）。
+实际上任何支持该分词结果格式的软件都可以配合本软件包使用，只需设置好
+`cns-process-shell-command`。
 
-To compile the Chinese word segmentation program, do:
+## 编译
+
+需要先安装 g++ 编译器：
 
 ```sh
-cd /path/to/this-library
+git clone $this_repo
+git submodule update --init --recursive
 make
 ```
+将生成 `cnws` 可执行文件（Cygwin 平台为 `cnws.exe`）。
 
-This will generate the `chinese-word-segmentation` executable.
-
-## Usage example
+## 使用示例
 
 ```elisp
 (add-to-list 'load-path "/path/to/this-library")
-(setq cns-prog "/path/to/this-library/chinese-word-segmentation")
-(setq cns-dict-directory "/path/to/this-library/dict")
+(setq cns-prog "/path/to/this-library/cnws")
+(setq cns-dict-directory "/path/to/this-library/cppjieba/dict")
+;; (setq cns-process-shell-command "other word segmentation process command line")
 (setq cns-recent-segmentation-limit 20) ; default is 10
 (setq cns-debug nil) ; disable debug output, default is t
 (require 'cns nil t)
@@ -32,12 +37,10 @@ This will generate the `chinese-word-segmentation` executable.
   (add-hook 'find-file-hook 'cns-auto-enable))
 ```
 
-To turn on this minor mode, type: <kbd>M-x</kbd> `cns-mode`
-<kbd>RET</kbd>.  You can also turn on `global-cns-mode` if you like.
+手动开启 minor mode：<kbd>M-x</kbd> `cns-mode` <kbd>RET</kbd>，或者开
+启 `global-cns-mode`.
 
-## Key bindings
-
-This minor mode changes the following key bindings:
+## 按键绑定
 
 ```
 +---------------+----------------------+--------------------------+
@@ -53,9 +56,4 @@ This minor mode changes the following key bindings:
 +---------------+----------------------+--------------------------+
 ```
 
-Please see the comments in `cns.el` for more information.
-
-## Platform support
-
-This library is tested to work on [Debian](https://www.debian.org/)
-Jessie and [Cygwin](https://www.cygwin.com/).
+详见 `cns.el` 中的注释。
