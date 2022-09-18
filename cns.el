@@ -1,6 +1,6 @@
-;;; cns.el --- Chinese word segmentation library based on cjieba.  -*- lexical-binding: t; -*-
+;;; cns.el --- Chinese word segmentation library based on Jieba.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016  KANG
+;; Copyright (C) 2016-2022  KANG
 
 ;; Author: KANG <kanglmf AT 126 DOT com>
 ;; Keywords: tools, extensions
@@ -20,29 +20,8 @@
 
 ;;; Commentary:
 
-;; This library uses cjieba (<https://github.com/yanyiwu/cjieba/>)
+;; This library uses Jieba (<https://github.com/yanyiwu/cppjieba/>)
 ;; with simple modification.
-;;
-;; To compile the Chinese word segmentation program, do:
-;;
-;; $ cd /path/to/this-library
-;; $ make
-;;
-;; This will generate the chinese-word-segmentation executable.
-;;
-;; Usage example:
-;;
-;; (add-to-list 'load-path "/path/to/this-library")
-;; (setq cns-prog "/path/to/this-library/chinese-word-segmentation")
-;; (setq cns-dict-directory "/path/to/this-library/dict")
-;; (setq cns-recent-segmentation-limit 20) ; default is 10
-;; (setq cns-debug nil) ; disable debug output, default is t
-;; (require 'cns nil t)
-;; (when (featurep 'cns)
-;;   (add-hook 'find-file-hook 'cns-auto-enable))
-;;
-;; To turn on this minor mode, type: M-x cns-mode RET.  You can also
-;; turn on global-cns-mode if you like.
 ;;
 ;; NOTE:
 ;;
@@ -111,11 +90,28 @@
 
 (defvar cns-process-name "cns" "The word segmentation process name.")
 
+(defvar cns-cygwin-shell-path "C:/cygwin64/bin/bash.exe"
+  "Login shell that support '-c EXPR' argument on Cygwin.
+This variable is only required on Windows (`system-type' is
+'windows-nt).")
+
+(defvar cns-process-shell-command nil
+  "Shell command to run by `start-process-shell-command'.
+The process can be any program calls that perform
+Read-Evaluate-Print Loop (REPL):
+1. Wait user input;
+2. Perform word segmentation;
+3. Print word segmentation result;
+
+Note: the output string is regex-filtered (\"^.+: \"), only the
+word segmentation values (digits separated by space) following
+\": \" are used.")
+
 (defvar cns-process-buffer "*Chinese-word-segmentation*"
   "The word segmentation process buffer.")
 
 (defvar cns-segmentation nil
-  "Segmentation data processed from cjieba.
+  "Segmentation data processed from Jieba.
 The value is a list that contains all positions of the
 segmentation.  For example, the word segmentation data for the
 word '中文分词' should be '(2 2), indicating that the word should
@@ -146,7 +142,7 @@ filename, if it can be found via `process-environment'."
   :group 'cns)
 
 (defcustom cns-dict-directory nil
-  "Directory of dictionary files used by cjieba.
+  "Directory of dictionary files used by Jieba.
 There should be three files in the directory:
 \"jieba.dict.utf8\", \"hmm_model.utf8\" and \"user.dict.utf8\"."
   :type 'string
@@ -162,11 +158,23 @@ There should be three files in the directory:
   :type 'boolean
   :group 'cns)
 
+(defun cns-set-process-shell-command ()
+  "Set `cns-process-shell-command' based on `system-type'.
+On Windows NT, run the word segmentation process via Cygwin platform."
+  (if (eq system-type 'windows-nt)
+      (setq cns-process-shell-command
+            (format "%s -l -c '%s %s'"
+                    cns-cygwin-shell-path
+                    cns-prog
+                    cns-dict-directory))
+    (setq cns-process-shell-command
+          (format "%s %s" cns-prog cns-dict-directory))))
+
 (defun cns-segmentation-filter (proc output)
   "Get word segmentation result and set `cns-segmentation'.
 PROC is the word segmentation process, and OUTPUT is the word
 segmentation output."
-  (let ((string (replace-regexp-in-string "\n" "" output)))
+  (let ((string (replace-regexp-in-string "^.+: \\|\n" "" output)))
     (when (buffer-live-p (process-buffer proc))
       (with-current-buffer (process-buffer proc)
         (goto-char (process-mark proc))
@@ -548,28 +556,22 @@ If ARG is zero, do nothing."
 (defun cns-start-process nil
   "Start the word segmentation process.
 Ensure that `cns-prog' and `cns-dict-directory' are set properly."
-  (if (or (not cns-prog) (not (executable-find cns-prog)))
+  (if (not cns-prog)
       (user-error "`cns-prog' is not set properly"))
   (if (not cns-dict-directory)
       (user-error "`cns-dict-directory' is not set properly"))
+  (if (not cns-process-shell-command)
+      (cns-set-process-shell-command))
   (unless (process-live-p cns-process)
-    (let* ((dir (file-name-as-directory (expand-file-name cns-dict-directory)))
-           (dict-jieba (concat dir "jieba.dict.utf8"))
-           (dict-hmm (concat dir "hmm_model.utf8"))
-           (dict-user (concat dir "user.dict.utf8")))
-      (dolist (path (list dir dict-jieba dict-hmm dict-user))
-        (if (not (file-exists-p path))
-            (user-error "'%s' is not a valid path, \
-ensure `cns-dict-directory' is set properly" path)))
-      (let ((cmd (format "%s -j %s -h %s -u %s"
-                         cns-prog dict-jieba dict-hmm dict-user)))
-        (setq cns-process (start-process-shell-command cns-process-name
-                                                       cns-process-buffer
-                                                       cmd)))
-      ;; wait until cns-process has been initialized
-      (accept-process-output cns-process)
-      ;; do not query on exit
-      (set-process-query-on-exit-flag cns-process nil))))
+    (setq cns-process (start-process-shell-command cns-process-name
+                                                   cns-process-buffer
+                                                   cns-process-shell-command))
+    ;; wait until cns-process has been initialized
+    (accept-process-output cns-process)
+    ;; do not query on exit
+    (set-process-query-on-exit-flag cns-process nil)
+    (with-current-buffer cns-process-buffer
+      (local-set-key "q" 'quit-window))))
 
 (defun cns-stop-process nil
   "Stop the word segmentation process."
@@ -631,15 +633,15 @@ mode if ARG is omitted or nil.
 
 This library simply processes Chinese word segmentation result
 generated by a modified version of
-cjieba (<https://github.com/yanyiwu/cjieba/>), if necessary.  See
+Jieba (<https://github.com/yanyiwu/cppjieba/>), if necessary.  See
 the comments at the top of this library for further information.
 
 This is an minor mode in current buffer.  To toggle the mode in
 all buffers, use `global-cns-mode'.
-"              ;; doc
-  nil          ;; init-value
-  nil          ;; lighter
-  cns-mode-map ;; keymap
+"                      ;; doc
+  :init-value nil      ;; init-value
+  :lighter nil         ;; lighter
+  :keymap cns-mode-map ;; keymap
   (if cns-mode (cns-mode-enable) (cns-mode-disable)))
 
 ;;;###autoload
