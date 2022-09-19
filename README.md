@@ -2,25 +2,28 @@
 # emacs-chinese-word-segmentation
 
 基于 [结巴分词](https://github.com/yanyiwu/cppjieba) 的 Emacs 中文分词
-工具，实现了以中文词语为单位的移动和编辑。支持 Linux、Cygwin 和
-Windows 平台。目前 Windows 平台支持是通过调用 Cygwin 进程实现的。
+工具，实现了以中文词语为单位的移动和编辑。支持 Linux、Cygwin、Windows
+和 Android/Termux 平台。目前 Windows 平台支持是通过调用 Cygwin 进程实
+现的。
 
 ## 原理
 
-通过调用外部程序的 REPL 实时进行中文分词，分词结果返回给 Emacs，只保留
-分词后的每个词组的长度（如 `["中文", "分词"]: 2 2` 只保留 `2 2`）。
-实际上任何支持该分词结果格式的软件都可以配合本软件包使用，只需设置好
-`cns-process-shell-command`。
+通过调用外部程序的 Read-Evaluate-Print Loop (REPL) 实时进行中文分词，
+分词结果返回给 Emacs，只用到分词后的每个词组的长度（如 `["中文", "分词
+"]: 2 2` 只保留 `2 2`）。实际上任何支持 REPL 并输出该格式（仅需要以空
+格分隔的词组长度列表）分词结果的中文分词软件都可以配合本软件包使用，只
+需设置好 `cns-process-shell-command`。
 
 ## 编译
 
-需要先安装 g++ 编译器：
+需要先安装 C++ 编译器（ gcc/g++ 或 clang）和 make：
 
 ```sh
 git clone $this_repo
 git submodule update --init --recursive
 make
 ```
+
 将生成 `cnws` 可执行文件（Cygwin 平台为 `cnws.exe`）。
 
 ## 使用示例
@@ -29,7 +32,8 @@ make
 (add-to-list 'load-path "/path/to/this-library")
 (setq cns-prog "/path/to/this-library/cnws")
 (setq cns-dict-directory "/path/to/this-library/cppjieba/dict")
-;; (setq cns-process-shell-command "other word segmentation process command line")
+;; To use other program for word segmentation, set cns-process-shell-command:
+;; (setq cns-process-shell-command "word_segmentation_program arg1 arg2...")
 (setq cns-recent-segmentation-limit 20) ; default is 10
 (setq cns-debug nil) ; disable debug output, default is t
 (require 'cns nil t)
