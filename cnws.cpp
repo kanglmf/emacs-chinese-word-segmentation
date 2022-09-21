@@ -46,6 +46,13 @@ char* convert_char (const wchar_t* str) {
 int main(int argc, char** argv) {
   signal(SIGINT, exit);
 
+  if (argc < 2) {
+    fprintf(stderr, "Usage:\n\
+  %s <DICT_PATH>\n\
+<DICT_PATH> should contain dict files from cppjieba.\n", argv[0]);
+    exit (EXIT_FAILURE);
+  }
+
   fs::path dir (argv[1]);
 
   fs::path file_jieba ("jieba.dict.utf8");
