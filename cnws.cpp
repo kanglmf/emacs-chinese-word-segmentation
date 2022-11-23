@@ -1,14 +1,18 @@
-// g++ -Ideps/limonp/include -Iinclude -o FILE $0
+// tested compilers:
+// general  g++:        g++ -Icppjieba/deps/limonp/include -Icppjieba/include -O3 -o cnws cnws.cpp
+// debian   g++-12:     [-std=c++17]
+// debian   clang++-14: -std=c++17
+// cygwin   g++-11:     [-std=c++17]
+// cygwin   clang++-8:  -std=c++17
+// termux   clang++-15: [-std=c++11 | -std=c++14]
 
 #include <iostream>
-// #include "cppjieba/Jieba.hpp"
-
 #include <csignal>
 #include <cwchar>
 
 // requires C++ 2017
 #include <filesystem>
-#ifdef __clang__
+#ifdef __ANDROID__
 namespace fs = std::__fs::filesystem;
 #else
 namespace fs = std::filesystem;

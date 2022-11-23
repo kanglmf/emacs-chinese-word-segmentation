@@ -21,7 +21,10 @@
 ```sh
 git clone $this_repo
 git submodule update --init --recursive
+# using g++
 make
+# using clang++
+env CXX=clang++ make
 ```
 
 将生成 `cnws` 可执行文件（Cygwin 平台为 `cnws.exe`）。
