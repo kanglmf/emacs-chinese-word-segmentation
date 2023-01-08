@@ -10,14 +10,6 @@
 #include <csignal>
 #include <cwchar>
 
-// requires C++ 2017
-#include <filesystem>
-#ifdef __ANDROID__
-namespace fs = std::__fs::filesystem;
-#else
-namespace fs = std::filesystem;
-#endif
-
 #include "cppjieba/DictTrie.hpp"
 #include "cppjieba/FullSegment.hpp"
 #include "cppjieba/HMMModel.hpp"
@@ -50,40 +42,17 @@ char* convert_char (const wchar_t* str) {
 int main(int argc, char** argv) {
   signal(SIGINT, exit);
 
-  if (argc < 2) {
+  if (argc < 6) {
     fprintf(stderr, "Usage:\n\
-  %s <DICT_PATH>\n\
-<DICT_PATH> should contain dict files from cppjieba.\n", argv[0]);
+  %s <DICT_PATH> <HMM_PATH> <USER_DICT_PATH> <IDF_PATH> <STOP_WORD_PATH>\n", argv[0]);
     exit (EXIT_FAILURE);
   }
 
-  fs::path dir (argv[1]);
-
-  fs::path file_jieba ("jieba.dict.utf8");
-  fs::path file_hmm_model ("hmm_model.utf8");
-  fs::path file_user ("user.dict.utf8");
-  fs::path file_idf ("idf.utf8");
-  fs::path file_stop_words ("stop_words.utf8");
-
-  fs::path path_jieba = dir / file_jieba;
-  fs::path path_hmm_model = dir / file_hmm_model;
-  fs::path path_user = dir / file_user;
-  fs::path path_idf = dir / file_idf;
-  fs::path path_stop_words = dir / file_stop_words;
-
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
-  const char* const DICT_PATH = convert_char (path_jieba.c_str());
-  const char* const HMM_PATH = convert_char (path_hmm_model.c_str());
-  const char* const USER_DICT_PATH = convert_char (path_user.c_str());
-  const char* const IDF_PATH = convert_char (path_idf.c_str());
-  const char* const STOP_WORD_PATH = convert_char (path_stop_words.c_str());
-#else
-  const char* const DICT_PATH = path_jieba.c_str();
-  const char* const HMM_PATH = path_hmm_model.c_str();
-  const char* const USER_DICT_PATH = path_user.c_str();
-  const char* const IDF_PATH = path_idf.c_str();
-  const char* const STOP_WORD_PATH = path_stop_words.c_str();
-#endif
+  const char* const DICT_PATH       = argv[1];
+  const char* const HMM_PATH        = argv[2];
+  const char* const USER_DICT_PATH  = argv[3];
+  const char* const IDF_PATH        = argv[4];
+  const char* const STOP_WORD_PATH  = argv[5];
 
   cppjieba::Jieba jieba(
 		  DICT_PATH, HMM_PATH, USER_DICT_PATH, IDF_PATH, STOP_WORD_PATH
