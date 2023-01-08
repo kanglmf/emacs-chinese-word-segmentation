@@ -163,11 +163,11 @@ There should be three files in the directory:
   ;; avoid joining dirname and basename in C++ using the ugly
   ;; std::filesystem, which is not cross-platform.
   (concat
-   (concat (expand-file-name (file-name-as-directory dir)) "jieba.dict.utf8") " "
-   (concat (expand-file-name (file-name-as-directory dir)) "hmm_model.utf8") " "
-   (concat (expand-file-name (file-name-as-directory dir)) "user.dict.utf8") " "
-   (concat (expand-file-name (file-name-as-directory dir)) "idf.utf8") " "
-   (concat (expand-file-name (file-name-as-directory dir)) "stop_words.utf8"))
+   (concat (file-name-as-directory dir) "jieba.dict.utf8") " "
+   (concat (file-name-as-directory dir) "hmm_model.utf8") " "
+   (concat (file-name-as-directory dir) "user.dict.utf8") " "
+   (concat (file-name-as-directory dir) "idf.utf8") " "
+   (concat (file-name-as-directory dir) "stop_words.utf8"))
   )
 
 (defun cns-set-process-shell-command ()
