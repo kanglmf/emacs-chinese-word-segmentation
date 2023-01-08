@@ -178,7 +178,7 @@ On Windows NT, run the word segmentation process via Cygwin platform."
             (format "%s -l -c '%s %s'"
                     cns-cygwin-shell-path
                     cns-prog
-                    cns-dict-directory))
+                    (cns-set-prog-args cns-dict-directory)))
     (setq cns-process-shell-command
           (format "%s %s" cns-prog (cns-set-prog-args cns-dict-directory)))))
 
