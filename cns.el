@@ -158,6 +158,18 @@ There should be three files in the directory:
   :type 'boolean
   :group 'cns)
 
+(defun cns-set-prog-args (dir)
+  "Set `cns-prog' arguments."
+  ;; avoid joining dirname and basename in C++ using the ugly
+  ;; std::filesystem, which is not cross-platform.
+  (concat
+   (concat (expand-file-name (file-name-as-directory dir)) "jieba.dict.utf8") " "
+   (concat (expand-file-name (file-name-as-directory dir)) "hmm_model.utf8") " "
+   (concat (expand-file-name (file-name-as-directory dir)) "user.dict.utf8") " "
+   (concat (expand-file-name (file-name-as-directory dir)) "idf.utf8") " "
+   (concat (expand-file-name (file-name-as-directory dir)) "stop_words.utf8"))
+  )
+
 (defun cns-set-process-shell-command ()
   "Set `cns-process-shell-command' based on `system-type'.
 On Windows NT, run the word segmentation process via Cygwin platform."
@@ -168,7 +180,7 @@ On Windows NT, run the word segmentation process via Cygwin platform."
                     cns-prog
                     cns-dict-directory))
     (setq cns-process-shell-command
-          (format "%s %s" cns-prog cns-dict-directory))))
+          (format "%s %s" cns-prog (cns-set-prog-args cns-dict-directory)))))
 
 (defun cns-segmentation-filter (proc output)
   "Get word segmentation result and set `cns-segmentation'.
