@@ -175,7 +175,7 @@ There should be three files in the directory:
 On Windows NT, run the word segmentation process via Cygwin platform."
   (setq cns-process-shell-command
         (if (eq system-type 'windows-nt)
-            (if (string-match-p "mingw64" system-configuration)
+            (if (string-match-p "mingw" system-configuration)
                 (format "%s %s" cns-prog (cns-set-prog-args cns-dict-directory))
               (format "%s -l -c '%s %s'"
                       cns-cygwin-shell-path
