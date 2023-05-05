@@ -171,17 +171,15 @@ There should be three files in the directory:
   )
 
 (defun cns-set-process-shell-command ()
-  "Set `cns-process-shell-command' based on `system-type' and `system-configuration'.
+  "Set `cns-process-shell-command' based on `shell-file-name',
 On Windows NT, run the word segmentation process via Cygwin platform."
   (setq cns-process-shell-command
-        (if (eq system-type 'windows-nt)
-            (if (string-match-p "mingw" system-configuration)
-                (format "%s %s" cns-prog (cns-set-prog-args cns-dict-directory))
-              (format "%s -l -c '%s %s'"
-                      cns-cygwin-shell-path
-                      cns-prog
-                      (cns-set-prog-args cns-dict-directory)))
-          (format "%s %s" cns-prog (cns-set-prog-args cns-dict-directory)))))
+        (if (string-match-p "bash" shell-file-name)
+            (format "%s %s" cns-prog (cns-set-prog-args cns-dict-directory))
+          (format "%s -l -c '%s %s'"
+                  cns-cygwin-shell-path
+                  cns-prog
+                  (cns-set-prog-args cns-dict-directory)))))
 
 (defun cns-segmentation-filter (proc output)
   "Get word segmentation result and set `cns-segmentation'.
