@@ -90,10 +90,14 @@
 
 (defvar cns-process-name "cns" "The word segmentation process name.")
 
-(defvar cns-cygwin-shell-path "C:/cygwin64/bin/bash.exe"
-  "Login shell that support '-c EXPR' argument on Cygwin.
-This variable is only required on Windows (`system-type' is
-'windows-nt).")
+(defvar cns-cmdproxy-shell-path
+  (if (string-match-p "cmdproxy.exe$" shell-file-name)
+      (if (executable-find "wsl.exe")
+          "wsl.exe"
+        "C:/cygwin64/bin/bash.exe")
+    nil)
+  "Login shell that support '-c EXPR' argument on WSL or Cygwin.
+This variable is only required on Windows.")
 
 (defvar cns-process-shell-command nil
   "Shell command to run by `start-process-shell-command'.
@@ -171,16 +175,15 @@ There should be three files in the directory:
   )
 
 (defun cns-set-process-shell-command ()
-  "Set `cns-process-shell-command' based on `system-type' and `system-configuration'.
-On Windows NT, run the word segmentation process via Cygwin platform."
+  "Set `cns-process-shell-command' based on `shell-file-name'.
+On Windows NT, run the word segmentation process via WSL or
+Cygwin platform."
   (setq cns-process-shell-command
-        (if (eq system-type 'windows-nt)
-            (if (string-match-p "mingw64" system-configuration)
-                (format "%s %s" cns-prog (cns-set-prog-args cns-dict-directory))
-              (format "%s -l -c '%s %s'"
-                      cns-cygwin-shell-path
-                      cns-prog
-                      (cns-set-prog-args cns-dict-directory)))
+        (if (string-match-p "cmdproxy.exe$" shell-file-name)
+            (format "%s -l -c '%s %s'"
+                    cns-cmdproxy-shell-path
+                    cns-prog
+                    (cns-set-prog-args cns-dict-directory))
           (format "%s %s" cns-prog (cns-set-prog-args cns-dict-directory)))))
 
 (defun cns-segmentation-filter (proc output)
