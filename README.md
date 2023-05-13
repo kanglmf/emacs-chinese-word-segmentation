@@ -3,8 +3,8 @@
 
 基于 [结巴分词](https://github.com/yanyiwu/cppjieba) 的 Emacs 中文分词
 工具，实现了以中文词语为单位的移动和编辑。支持 Linux、Cygwin、Windows
-和 Android/Termux 平台。目前 Windows 平台支持是通过调用 Cygwin 进程实
-现的。
+和 Android/Termux 平台。目前 Windows 平台支持是通过调用 WSL 或 Cygwin 
+进程实现的。
 
 ## 原理
 
