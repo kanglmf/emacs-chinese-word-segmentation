@@ -93,7 +93,7 @@
 (defvar cns-cmdproxy-shell-path
   (if (string-match-p "cmdproxy.exe$" shell-file-name)
       (if (executable-find "wsl.exe")
-          "wsl.exe"
+          "wsl.exe bash"
         "C:/cygwin64/bin/bash.exe")
     nil)
   "Login shell that support '-c EXPR' argument on WSL or Cygwin.
