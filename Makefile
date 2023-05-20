@@ -1,5 +1,7 @@
 ifeq ($(shell $(CXX) --version | grep -o clang), clang)
-	ifneq ($(shell uname -o), Android)
+	ifeq ($(shell uname -o), Android)
+		CXXFLAGS += -std=c++11
+	else
 		CXXFLAGS += -std=c++17
 	endif
 endif
