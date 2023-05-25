@@ -20,6 +20,7 @@ Emacs，只用到分词后的每个词组的长度（如 `["中文", "分词"]: 
 
 ```sh
 git clone $this_repo
+cd $this_repo
 git submodule update --init --recursive
 # using g++
 make
