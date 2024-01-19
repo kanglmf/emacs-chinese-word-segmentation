@@ -210,7 +210,9 @@ segmentation output."
     (if (eq direction 'forward)
         (progn (forward-word)
                (point))
-      (backward-word)
+      ;; NOTE: DO NOT simply use `backward-word' in `subword-mode',
+      ;; which will contain both Chinese and non-Chinese characters.
+      (re-search-backward "\\<")
       (point))))
 
 (defun cns-get-word (direction)
@@ -227,14 +229,20 @@ is the word to be processed.  If WORD is omitted, use
 `cns-get-word' to obtain it."
   (let ((word (or word (cns-get-word direction))))
     (cond
-     ((and (string-match "^\\(\\cC+\\)\\(\\CC*\\)$" word)
-           (eq direction 'backward))
-      (list (match-string-no-properties 1 word)
-            (length (match-string-no-properties 2 word))))
-     ((and (string-match "^\\(\\CC*\\)\\(\\cC+\\)$" word)
-           (eq direction 'forward))
-      (list (length (match-string-no-properties 1 word))
-            (match-string-no-properties 2 word)))
+     ((eq direction 'backward)
+      (cond
+       ((string-match "\\(\\cC+\\)\\(\\CC*\\)$" word)
+        (list (match-string-no-properties 1 word)
+              (length (match-string-no-properties 2 word))))
+       ((string-match "^\\(\\cC*\\)\\(\\CC+\\)$" word)
+        (list (match-string-no-properties 2 word)
+              (length (match-string-no-properties 1 word))))
+       (t nil)))
+     ((eq direction 'forward)
+      (if (string-match "^\\(\\CC*\\)\\(\\cC+\\)$" word)
+          (list (length (match-string-no-properties 1 word))
+                (match-string-no-properties 2 word))
+        nil))
      (t nil))))
 
 (defun cns-within-thing-p (regex)
@@ -383,10 +391,15 @@ enable `cns-mode' first"))
         (backward-char distance)
       (forward-char distance))))
 
+(defun cns-backward-word-safe-1 ()
+  (let ((pos-by-regex (save-excursion (re-search-backward "\\<") (point)))
+        (pos-by-word (save-excursion (backward-word) (point))))
+    (goto-char (if (> pos-by-regex pos-by-word) pos-by-regex pos-by-word))))
+
 (defun cns-backward-word-1 nil
   "Move backward a word just once."
   (if (not (string-match "\\cC" (cns-get-word 'backward)))
-      (backward-word)
+      (cns-backward-word-safe-1)
     (cns-move 'backward)))
 
 (defun cns-forward-word-1 nil
