@@ -413,7 +413,7 @@ enable `cns-mode' first"))
 Each \"word\" can be a normal word or a Chinese word.
 With argument ARG, do this that many times.
 If ARG is omitted or nil, move point backward one word."
-  (interactive "p")
+  (interactive "^p")
   (let ((arg (or arg 1))
         (i 0))
     (cond
@@ -431,7 +431,7 @@ If ARG is omitted or nil, move point backward one word."
   "Move point forward ARG words (backward if ARG is negative).
 Each \"word\" can be a normal word or a Chinese word.
 If ARG is omitted or nil, move point forward one word."
-  (interactive "p")
+  (interactive "^p")
   (let ((arg (or arg 1))
         (i 0))
     (cond
