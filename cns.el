@@ -190,7 +190,7 @@ Cygwin platform."
   "Get word segmentation result and set `cns-segmentation'.
 PROC is the word segmentation process, and OUTPUT is the word
 segmentation output."
-  (let ((string (replace-regexp-in-string "^.+: \\|\n" "" output)))
+  (let ((string (replace-regexp-in-string "^.*: *\\|\n" "" output)))
     (when (buffer-live-p (process-buffer proc))
       (with-current-buffer (process-buffer proc)
         (goto-char (process-mark proc))
