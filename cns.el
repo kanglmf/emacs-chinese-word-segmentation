@@ -114,6 +114,19 @@ word segmentation values (digits separated by space) following
 (defvar cns-process-buffer "*Chinese-word-segmentation*"
   "The word segmentation process buffer.")
 
+(defcustom cns-process-type 'network
+  "Type of Chinese word segmentation process.
+`network': start a network process connecting to a server.
+`shell': start a process using shell command."
+  :type 'symbol
+  :options '(network shell))
+
+(defcustom cns-client-host "127.0.0.1" "Server host address."
+  :type 'string)
+
+(defcustom cns-client-port 9999 "Server port number."
+  :type 'integer)
+
 (defvar cns-segmentation nil
   "Segmentation data processed from Jieba.
 The value is a list that contains all positions of the
@@ -582,7 +595,7 @@ If ARG is zero, do nothing."
       (delete-region pos1 pos4)
       (insert word2 non-word word1)))))
 
-(defun cns-start-process nil
+(defun cns-start-shell-process nil
   "Start the word segmentation process.
 Ensure that `cns-prog' and `cns-dict-directory' are set properly."
   (if (not cns-prog)
@@ -599,12 +612,39 @@ Ensure that `cns-prog' and `cns-dict-directory' are set properly."
     (accept-process-output cns-process)
     ;; do not query on exit
     (set-process-query-on-exit-flag cns-process nil)
+    (set-process-filter cns-process 'cns-segmentation-filter)
     (with-current-buffer cns-process-buffer
       (local-set-key "q" 'quit-window))))
 
+(defun cns-start-network-process (host port)
+  "Start network process (as a client) connecting to a Chinese word
+segmentation server.  For each word segmentation request, the server
+should response a string that consists of a list of segmented word
+length.  See `cns-segmentation' for more information."
+  (let ((p (make-network-process
+            :name       cns-process-name
+            :buffer     (get-buffer-create cns-process-buffer)
+            :family     'ipv4
+            :host       host
+            :service    port
+            :keepalive  t
+            :filter     'cns-segmentation-filter)))
+    (setq cns-process p)
+    (set-process-query-on-exit-flag cns-process nil)
+    (with-current-buffer cns-process-buffer
+      (local-set-key "q" 'quit-window))))
+
+(defun cns-start-process nil
+  "Wrapper for starting network or shell process."
+  (if (equal cns-process-type 'network)
+      (cns-start-network-process cns-client-host cns-client-port)
+    (cns-start-shell-process)))
+
 (defun cns-stop-process nil
   "Stop the word segmentation process."
-  (cns-send-string "EOF" cns-process))
+  (if (equal cns-process-type 'network)
+      (cns-send-string "" cns-process)
+    (cns-send-string "EOF" cns-process)))
 
 (defun cns-handle-buffer-list (operation)
   "Maintain a list of buffers where function `cns-mode' is enabled.
@@ -630,8 +670,7 @@ stop the word segmentation process `cns-process'."
 (defun cns-mode-enable nil
   "Enable `cns-mode'."
   (unless (process-live-p cns-process)
-    (cns-start-process)
-    (set-process-filter cns-process 'cns-segmentation-filter))
+    (cns-start-process))
   (cns-buffer-list-add-buffer)
   (add-hook 'kill-buffer-hook 'cns-mode-disable nil t))
 
