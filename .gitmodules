@@ -1,3 +1,6 @@
 [submodule "cppjieba"]
 	path = cppjieba
 	url = https://github.com/yanyiwu/cppjieba.git
+[submodule "cjieba"]
+	path = cjieba
+	url = https://github.com/yanyiwu/cjieba.git
