@@ -1,5 +1,6 @@
 cnws
 cnws.exe
+cnws-server-jieba
 *.o
 *.a
 *.swp
