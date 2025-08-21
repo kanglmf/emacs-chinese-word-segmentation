@@ -2,7 +2,7 @@
 # emacs-chinese-word-segmentation
 
 基于[结巴分词](https://github.com/yanyiwu/cppjieba)或
-[HanLP](https://github.com/hankcs/HanLP)的 Emacs 中文分词工具，实现了
+[HanLP](https://github.com/hankcs/HanLP) 的 Emacs 中文分词工具，实现了
 以中文词语为单位的移动和编辑。支持 Linux、Cygwin、Windows 和
 Android/Termux 平台。目前支持两种实现方式：（1）进程调用：在每个 Emacs
 进程中分别启动分词软件；（2）网络连接：通过 Emacs 网络进程连接到分词服
