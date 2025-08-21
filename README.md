@@ -86,8 +86,12 @@ cd $this_repo
 python $this_repo/cnws_server_hanlp.py --host localhost --port 9999
 ```
 
-注意：首次运行 HanLP 将下载官网提供的预训练模型，若后续不希望再次联网
-检查模型更新，可以在运行 `cnws_server_hanlp.py` 前设置环境变量：
+注意：
+
+1. 如果希望其他设备能访问分词服务器，需要修改 `--host` 参数为
+   `0.0.0.0`，并开启相应的端口。
+2. 首次运行 HanLP 将下载官网提供的预训练模型，若后续不希望再次联网检查
+   模型更新，可以在运行 `cnws_server_hanlp.py` 前设置环境变量：
 
 ```sh
 export TRANSFORMERS_OFFLINE=1
