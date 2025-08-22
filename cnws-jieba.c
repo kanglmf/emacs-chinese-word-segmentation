@@ -44,7 +44,7 @@ char *jieba_cut (Jieba handle, char *s) {
     strcpy (seg_len_str, s);
     strcat (seg_len_str, ": ");
     for (x = words; x && x->word; x++) {
-        sprintf (str, "%d ", x->len / CJIEBA_WCHAR_SIZE);
+        sprintf (str, "%zd ", x->len / CJIEBA_WCHAR_SIZE);
         strcat (seg_len_str, str);
     }
     strcat (seg_len_str, "\n");
