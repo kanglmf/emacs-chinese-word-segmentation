@@ -103,6 +103,7 @@ export TRANSFORMERS_OFFLINE=1
 
 ```elisp
 (add-to-list 'load-path "$this_repo")
+(setq cns-process-type 'shell)
 (setq cns-prog "$this_repo/cnws")
 (setq cns-dict-directory "$this_repo/cppjieba/dict")
 
@@ -128,6 +129,7 @@ export TRANSFORMERS_OFFLINE=1
 ### 2. 网络连接方式（结巴分词、HanLP）
 
 ```elisp
+(setq cns-process-type 'network)
 (setq cns-client-host "127.0.0.1")
 (setq cns-client-port 9999)
 
