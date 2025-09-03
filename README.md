@@ -36,8 +36,8 @@ Emacs，只用到分词后的每个词组的长度（如 `["中文", "分词"]: 
 需要先安装 C++ 编译器（g++ 或 clang++）和 make：
 
 ```sh
-git clone $this_repo
-cd $this_repo
+git clone $this_repo_url
+cd $this_repo_dir
 git submodule update --init --recursive
 # using g++:
 make
@@ -52,8 +52,8 @@ env CXX=clang++ make
 需要先安装 C/C++ 编译器（ gcc/g++ 或 clang/clang++）、make 和 binutils：
 
 ```sh
-git clone $this_repo
-cd $this_repo
+git clone $this_repo_url
+cd $this_repo_dir
 git submodule update --init --recursive
 # using gcc/g++:
 make -f Makefile.server.jieba
@@ -81,9 +81,9 @@ cnws-server-jieba \
 
 ```sh
 pip install hanlp
-git clone $this_repo
-cd $this_repo
-python $this_repo/cnws_server_hanlp.py --host localhost --port 9999
+git clone $this_repo_url
+cd $this_repo_dir
+python $this_repo_dir/cnws_server_hanlp.py --host localhost --port 9999
 ```
 
 注意：
@@ -102,10 +102,10 @@ export TRANSFORMERS_OFFLINE=1
 ### 1. 进程调用方式（结巴分词）
 
 ```elisp
-(add-to-list 'load-path "$this_repo")
+(add-to-list 'load-path "$this_repo_dir")
 (setq cns-process-type 'shell)
-(setq cns-prog "$this_repo/cnws")
-(setq cns-dict-directory "$this_repo/cppjieba/dict")
+(setq cns-prog "$this_repo_dir/cnws")
+(setq cns-dict-directory "$this_repo_dir/cppjieba/dict")
 
 ;; 若使用其它中文分词软件, 需要设置 cns-process-shell-command:
 ;; (setq cns-process-shell-command "word_segmentation_program arg1 arg2...")
@@ -129,6 +129,7 @@ export TRANSFORMERS_OFFLINE=1
 ### 2. 网络连接方式（结巴分词、HanLP）
 
 ```elisp
+(add-to-list 'load-path "$this_repo_dir")
 (setq cns-process-type 'network)
 (setq cns-client-host "127.0.0.1")
 (setq cns-client-port 9999)
